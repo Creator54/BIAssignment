@@ -66,7 +66,7 @@ public class App {
         // Save the file with a unique name
         // Print the path of the file
         try {
-            String path = "/DEV_2/BIASSIGNMENT/app/screenshots/";
+            String path = "app/screenshots/";
             File theDir = new File(path);
             if (!theDir.exists()) {
                 theDir.mkdirs();
