@@ -3,39 +3,22 @@
  */
 package bi.assignment;
 
-import io.github.bonigarcia.wdm.WebDriverManager;
-
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.imageio.ImageIO;
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.remote.BrowserType;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-// import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import org.json.simple.JSONObject;
 import ru.yandex.qatools.ashot.AShot;
 import ru.yandex.qatools.ashot.Screenshot;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
-import java.util.*;
-import org.json.simple.*;
 import org.json.simple.parser.*;
-import java.io.*;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 // Below is the code outline which we will use for this project
@@ -47,36 +30,21 @@ public class App {
 
     public static ChromeDriver createDriver() {
         // TODO Create a new chrome Driver and Return the same
-        // Launch Browser using Zalenium
-        // final DesiredCapabilities capabilities = new DesiredCapabilities();
-        // capabilities.setBrowserName(BrowserType.CHROME);
-        // ChromeDriver driver = new ChromeDriver();  
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless", "--window-size=1920,1200");
         String driverLocation = "D:\\DEV_2\\chromedriver_win32\\chromedriver.exe";
         System.setProperty("webdriver.chrome.driver", driverLocation);
         ChromeDriver driver = new ChromeDriver(options);
-        // WebDriverManager.chromedriver().setup();
-        // ChromeDriver driver;
-        // driver = new ChromeDriver();
-        // System.out.println(driver.location());
         return driver;
     }
 
     public static void printQKartLoadingtime(ChromeDriver driver, String URL) throws InterruptedException {
-        // TODO Navigate to home page of QKart and verify the time taken for the page to
-        // load
-        // Create a new variable that would hold the current timestamp Eg. start
-        // Navigate to the QKart home page by using driver.get() method
+        // TODO Navigate to home page of QKart and verify the time taken for the page to load
         String homePageUrl = URL;
         long start = (System.currentTimeMillis() / 1000) % 60;
         driver.get(homePageUrl);
-        // Create another variable that would hold the current timestamp Eg. end
-        // Find the difference between the two timestamps i.e end - start
         long end = (System.currentTimeMillis() / 1000) % 60;
-        long duration = (end - start); // Total execution time in milli seconds
-        // Print the time taken in seconds in this format - Time taken to load QKart
-        // Page: 3 seconds
+        long duration = (end - start);
         System.out.println("Time taken to load QKart Page: " + duration + " seconds");
     }
 
@@ -110,8 +78,7 @@ public class App {
     }
 
     public static void GetProductImageandURL(ChromeDriver driver, String productName) throws InterruptedException {
-        // TODO: Given the product name, print the price of the project and the url of
-        // the image
+        // TODO: Given the product name, print the price of the project and the url of the image
         // p[contains(@class,'css-yg30e6') and translate('STYLE',
         // 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')]
         System.out.println(productName);
@@ -135,8 +102,7 @@ public class App {
     public static void searchForProduct(ChromeDriver driver, String product) {
         WebDriverWait wait = new WebDriverWait(driver, 30);
         try {
-            // Clear the contents of the search box and Enter the product name in the search
-            // box
+            // Clear the contents of the search box and Enter the product name in the search box
             WebElement searchBox = driver.findElement(By.xpath("//input[@name='search'][1]"));
             searchBox.clear();
             searchBox.sendKeys(product);
