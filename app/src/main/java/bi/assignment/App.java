@@ -6,15 +6,16 @@ package bi.assignment;
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import javax.imageio.ImageIO;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -22,9 +23,20 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.BrowserType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+// import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.json.simple.JSONObject;
 import ru.yandex.qatools.ashot.AShot;
 import ru.yandex.qatools.ashot.Screenshot;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
+import java.util.*;
+import org.json.simple.*;
+import org.json.simple.parser.*;
+import java.io.*;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 // Below is the code outline which we will use for this project
 /*
@@ -38,55 +50,60 @@ public class App {
         // Launch Browser using Zalenium
         // final DesiredCapabilities capabilities = new DesiredCapabilities();
         // capabilities.setBrowserName(BrowserType.CHROME);
-        // ChromeDriver driver = new ChromeDriver();
-        WebDriverManager.chromedriver().setup();
-        ChromeDriver driver;
-        driver = new ChromeDriver();
+        // ChromeDriver driver = new ChromeDriver();  
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless", "--window-size=1920,1200");
+        String driverLocation = "D:\\DEV_2\\chromedriver_win32\\chromedriver.exe";
+        System.setProperty("webdriver.chrome.driver", driverLocation);
+        ChromeDriver driver = new ChromeDriver(options);
+        // WebDriverManager.chromedriver().setup();
+        // ChromeDriver driver;
+        // driver = new ChromeDriver();
+        // System.out.println(driver.location());
         return driver;
     }
 
-    public static void printQKartLoadingtime(ChromeDriver driver) {
+    public static void printQKartLoadingtime(ChromeDriver driver, String URL) throws InterruptedException {
         // TODO Navigate to home page of QKart and verify the time taken for the page to
         // load
         // Create a new variable that would hold the current timestamp Eg. start
         // Navigate to the QKart home page by using driver.get() method
-        String homePageUrl = "https://crio-qkart-frontend-qa.vercel.app";
+        String homePageUrl = URL;
         long start = (System.currentTimeMillis() / 1000) % 60;
         driver.get(homePageUrl);
         // Create another variable that would hold the current timestamp Eg. end
         // Find the difference between the two timestamps i.e end - start
         long end = (System.currentTimeMillis() / 1000) % 60;
         long duration = (end - start); // Total execution time in milli seconds
-        // Print the time taken in seconds in this format - Time taken to load QKart Page: 3 seconds
-        System.out.println("Time taken to load QKart Page:" + duration + " seconds");
+        // Print the time taken in seconds in this format - Time taken to load QKart
+        // Page: 3 seconds
+        System.out.println("Time taken to load QKart Page: " + duration + " seconds");
     }
 
-    public static void captureFullPageScreenshot(ChromeDriver driver) {
+    public static void captureFullPageScreenshot(ChromeDriver driver, String screenShotSaveLocation) {
         // TODO: Capture the full page screenshot
         // Save the file with a unique name
         // Print the path of the file
         try {
-            String path = "app/screenshots/";
+            // "screenshots/";
+            String path = screenShotSaveLocation;
             File theDir = new File(path);
             if (!theDir.exists()) {
                 theDir.mkdirs();
             }
             String timestamp = String.valueOf(java.time.LocalDateTime.now()).replace(":", "-");
             String fileName = String.format("screenshotTime%s", timestamp);
-            String picPath = path + "fullPage" +fileName+ ".png";
-            // TakesScreenshot scrShot = ((TakesScreenshot) driver);
-            // File SrcFile = scrShot.getScreenshotAs(OutputType.FILE);
+            String picPath = path + "fullPage" + fileName + ".png";
             new AShot()
                     .shootingStrategy(ShootingStrategies.viewportPasting(100))
                     .takeScreenshot(driver);
             Screenshot screenshot = new AShot().shootingStrategy(ShootingStrategies.viewportPasting(1000))
                     .takeScreenshot(driver);
             ImageIO.write(screenshot.getImage(), "PNG", new File(picPath));
-            Path path1 = Paths.get(picPath);
-            printPath(path1);
-            // System.out.println("\n[Path] : " + path1);
-            // File DestFile = new File("screenshots/" + fileName);
-            // FileUtils.copyFile(SrcFile, DestFile);
+            Path pathUrl = Paths.get(picPath);
+            System.out.println("Full Page screenshot captured and saved at:");
+            System.out.printf("%-25s : %s%n", "path", pathUrl);
+            System.out.printf("%-25s : %s%n", "path.toAbsolutePath()", pathUrl.toAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -95,54 +112,62 @@ public class App {
     public static void GetProductImageandURL(ChromeDriver driver, String productName) throws InterruptedException {
         // TODO: Given the product name, print the price of the project and the url of
         // the image
+        // p[contains(@class,'css-yg30e6') and translate('STYLE',
+        // 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')]
+        System.out.println(productName);
+        try {
+            WebElement productNameEle = driver
+                    .findElement(
+                            By.xpath("//p[contains(@class,'css-yg30e6') and contains(text(), \"" + productName
+                                    + "\")]"));
+            WebElement productImgEle = productNameEle.findElement(By.xpath("//parent::div//parent::div/img"));
+            WebElement productPrice = productNameEle.findElement(By.xpath("//following-sibling::p"));
+            System.out.println("Product Info");
+            System.out.printf("Name: %s \n", productNameEle.getText().trim());
+            System.out.printf("Img URL: %s \n", productImgEle.getAttribute("src").trim());
+            System.out.printf("Prcie: %s \n", productPrice.getText().trim());
+        } catch (Exception e) {
+            System.out.println("No such product found, try to buy from some other places :( ");
+            System.out.println(e.getMessage());
+        }
     }
 
-    public static void printPath(Path path) {
-
-        System.out.printf("%-25s : %s%n", "path", path);
-        // System.out.printf("%-25s : %s%n", "path.toAbsolutePath()",
-        //         path.toAbsolutePath());
-        // System.out.printf("%-25s : %s%n", "path.getParent()", path.getParent());
-        // System.out.printf("%-25s : %s%n", "path.getRoot()", path.getRoot());
-
-        // try {
-
-            // if (Files.notExists(path)) {
-            //     return;
-            // }
-
-            // default, follow symbolic link
-            // System.out.printf("%-25s : %s%n", "path.toRealPath()",
-            //         path.toRealPath());
-            // no follow symbolic link
-            // System.out.printf("%-25s : %s%n", "path.toRealPath(nofollow)",
-            //         path.toRealPath(LinkOption.NOFOLLOW_LINKS));
-
-            // alternative to check isSymbolicLink
-            /*
-             * if (Files.isSymbolicLink(path)) {
-             * Path link = Files.readSymbolicLink(path);
-             * System.out.println(link);
-             * }
-             */
-
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
-
+    public static void searchForProduct(ChromeDriver driver, String product) {
+        WebDriverWait wait = new WebDriverWait(driver, 30);
+        try {
+            // Clear the contents of the search box and Enter the product name in the search
+            // box
+            WebElement searchBox = driver.findElement(By.xpath("//input[@name='search'][1]"));
+            searchBox.clear();
+            searchBox.sendKeys(product);
+            wait.until(ExpectedConditions.textToBePresentInElementLocated(By.className("css-yg30e6"), product));
+        } catch (TimeoutException te) {
+            wait.until(ExpectedConditions
+                    .presenceOfElementLocated(By.xpath("//h4[contains(text(),'No products found')]")));
+        } catch (Exception e) {
+            System.out.println("Error while searching for a product: " + e.getMessage());
+        }
     }
 
     public static void main(String[] args) {
         ChromeDriver driver = createDriver();
-        // String input = String.join(" ", args);
+        String input = String.join(" ", args);
+        JSONParser parser = new JSONParser();
         try {
-            printQKartLoadingtime(driver);
-            captureFullPageScreenshot(driver);
-        //     GetProductImageandURL(driver, input);
+            String configPath = "D:\\Github_repos\\BIAssignment\\config.json";
+            Object obj = parser.parse(new FileReader(configPath));
+            JSONObject jo = (JSONObject) obj;
+            String URL = (String) jo.get("QKART_URL");
+            String screenshotSaveLocation = (String) jo.get("ScreenshotSaveLocation");
+            printQKartLoadingtime(driver, URL);
+            captureFullPageScreenshot(driver, screenshotSaveLocation);
+            searchForProduct(driver, input);
+            GetProductImageandURL(driver, input);
         } catch (Exception e) {
+            System.out.println("Exception occured");
             System.out.println(e.getMessage());
         } finally {
-            // driver.quit();
+            driver.quit();
         }
     }
 }
